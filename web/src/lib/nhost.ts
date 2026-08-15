@@ -1,6 +1,15 @@
-import { NhostClient } from "@nhost/nhost-js";
+import { createClient } from "@nhost/nhost-js";
 
-export const nhost = new NhostClient({
-  subdomain: process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN!,
-  region: process.env.NEXT_PUBLIC_NHOST_REGION!,
+const subdomain = process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN;
+const region = process.env.NEXT_PUBLIC_NHOST_REGION;
+
+if (!subdomain || !region) {
+  throw new Error(
+    "Nhost environment variables are not configured"
+  );
+}
+
+export const nhost = createClient({
+  subdomain,
+  region,
 });
