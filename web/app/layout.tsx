@@ -9,6 +9,7 @@ import "./globals.css";
 import {
   OrganizationProvider,
 } from "@/src/components/auth/OrganizationProvider";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,7 @@ export default function RootLayout({
         <OrganizationProvider>
           {children}
         </OrganizationProvider>
+        <Analytics />
       </body>
     </html>
   );
