@@ -178,18 +178,45 @@ export default function WorkflowBuilder({
           );
         }
 
-        const createdSteps: WorkflowStep[] =
-          [];
+        const createdSteps: WorkflowStep[] = [];
+
+        const stepIdMap = new Map<string, string>();
 
         for (
           const step of
             [...workflow.workflow_steps]
               .sort(
                 (a, b) =>
-                  a.position -
-                  b.position
+                  a.position - b.position
               )
         ) {
+          const originalConfig =
+            step.config ?? {};
+
+          const config: Record<
+            string,
+            unknown
+          > = {
+            ...originalConfig,
+          };
+
+          if (
+            step.type ===
+              "conditional_branch" &&
+            typeof config.source_step_id ===
+              "string"
+          ) {
+            const realSourceStepId =
+              stepIdMap.get(
+                config.source_step_id
+              );
+
+            if (realSourceStepId) {
+              config.source_step_id =
+                realSourceStepId;
+            }
+          }
+
           const stepResult =
             await graphqlRequest<
               MutationResult<WorkflowStep>,
@@ -213,21 +240,17 @@ export default function WorkflowBuilder({
                 workflowId:
                   createdWorkflow.id,
 
-                name:
-                  step.name,
+                name: step.name,
 
-                type:
-                  step.type,
+                type: step.type,
 
                 position:
                   step.position,
 
-                config:
-                  step.config ?? {},
+                config,
 
                 branch:
-                  step.branch ??
-                  null,
+                  step.branch ?? null,
               }
             );
 
@@ -240,6 +263,11 @@ export default function WorkflowBuilder({
               `Step "${step.name}" could not be created.`
             );
           }
+
+          stepIdMap.set(
+            step.id,
+            createdStep.id
+          );
 
           createdSteps.push(
             createdStep
