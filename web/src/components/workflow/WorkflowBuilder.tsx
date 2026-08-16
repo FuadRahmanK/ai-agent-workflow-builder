@@ -1154,8 +1154,6 @@ export default function WorkflowBuilder({
     return;
   }
 
-  // New workflows and draft triggers only exist in local state
-  // until the workflow itself is saved.
   if (
     isNewWorkflow ||
     isDraftTrigger(trigger)

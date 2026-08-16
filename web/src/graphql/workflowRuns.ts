@@ -11,7 +11,6 @@ export const GET_WORKFLOW_RUNS = `
       order_by: {
         started_at: desc
       }
-      limit: 20
     ) {
       id
       workflow_id
