@@ -259,23 +259,16 @@ export default function WorkflowBuilder({
               {
                 workflowId: string;
                 type: string;
-                config: Record<
-                  string,
-                  unknown
-                >;
+                config: Record<string, unknown>;
+                enabled: boolean;
               }
             >(
               INSERT_WORKFLOW_TRIGGER,
               {
-                workflowId:
-                  createdWorkflow.id,
-
-                type:
-                  trigger.type,
-
-                config:
-                  trigger.config ??
-                  {},
+                workflowId: createdWorkflow.id,
+                type: trigger.type,
+                config: trigger.config ?? {},
+                enabled: trigger.enabled,
               }
             );
 
@@ -1099,21 +1092,16 @@ export default function WorkflowBuilder({
           {
             workflowId: string;
             type: string;
-            config: Record<
-              string,
-              unknown
-            >;
+            config: Record<string, unknown>;
+            enabled: boolean;
           }
         >(
           INSERT_WORKFLOW_TRIGGER,
           {
-            workflowId:
-              workflow.id,
-
-            type:
-              "manual",
-
+            workflowId: workflow.id,
+            type: "manual",
             config: {},
+            enabled: true,
           }
         );
 
@@ -1156,73 +1144,64 @@ export default function WorkflowBuilder({
   }
 
   async function saveTrigger() {
-    if (
-      !canManageRestrictedSteps ||
-      !selectedTrigger
-    ) {
-      return;
-    }
-
-    if (
-      isNewWorkflow ||
-      isDraftTrigger(
-        selectedTrigger
-      )
-    ) {
-      setMessage(
-        "Trigger changes saved to draft."
-      );
-
-      return;
-    }
-
-    try {
-      setSaving(true);
-      setMessage(null);
-
-      await graphqlRequest<
-        MutationResult<WorkflowTrigger>,
-        {
-          id: string;
-          type: string;
-          config: Record<
-            string,
-            unknown
-          >;
-        }
-      >(
-        UPDATE_WORKFLOW_TRIGGER,
-        {
-          id:
-            selectedTrigger.id,
-
-          type:
-            selectedTrigger.type,
-
-          config:
-            selectedTrigger.config ??
-            {},
-        }
-      );
-
-      setMessage(
-        "Trigger saved successfully."
-      );
-    } catch (error) {
-      console.error(
-        "Failed to save trigger:",
-        error
-      );
-
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Failed to save trigger."
-      );
-    } finally {
-      setSaving(false);
-    }
+  if (!canManageRestrictedSteps) {
+    return;
   }
+
+  const trigger = selectedTrigger;
+
+  if (!trigger) {
+    return;
+  }
+
+  // New workflows and draft triggers only exist in local state
+  // until the workflow itself is saved.
+  if (
+    isNewWorkflow ||
+    isDraftTrigger(trigger)
+  ) {
+    setMessage("Trigger changes saved to draft.");
+    return;
+  }
+
+  try {
+    setSaving(true);
+    setMessage(null);
+
+    await graphqlRequest<
+      MutationResult<WorkflowTrigger>,
+      {
+        id: string;
+        type: string;
+        config: Record<string, unknown>;
+        enabled: boolean;
+      }
+    >(
+      UPDATE_WORKFLOW_TRIGGER,
+      {
+        id: trigger.id,
+        type: trigger.type,
+        config: trigger.config ?? {},
+        enabled: trigger.enabled,
+      }
+    );
+
+    setMessage("Trigger saved successfully.");
+  } catch (error) {
+    console.error(
+      "Failed to save trigger:",
+      error
+    );
+
+    setMessage(
+      error instanceof Error
+        ? error.message
+        : "Failed to save trigger."
+    );
+  } finally {
+    setSaving(false);
+  }
+}
 
   async function deleteTrigger() {
     if (

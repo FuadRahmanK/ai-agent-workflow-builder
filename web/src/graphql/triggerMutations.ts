@@ -37,7 +37,6 @@ export const UPDATE_WORKFLOW_TRIGGER = `
         type: $type
         config: $config
         enabled: $enabled
-        next_run_at: null
       }
     ) {
       id
