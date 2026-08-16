@@ -119,11 +119,32 @@ export default function StepEditor({
           disabled={!canEdit}
           onChange={(event) => {
             const newType =
-              event.target
-                .value as WorkflowStepType;
+              event.target.value as WorkflowStepType;
+
+            let newConfig = config;
+
+            if (newType === "conditional_branch") {
+              newConfig = {
+                field:
+                  typeof config.field === "string"
+                    ? config.field
+                    : "text",
+                operator:
+                  config.operator === "equals" ||
+                  config.operator === "not_equals" ||
+                  config.operator === "contains"
+                    ? config.operator
+                    : "contains",
+                value:
+                  typeof config.value === "string"
+                    ? config.value
+                    : "",
+              };
+            }
 
             onChange({
               type: newType,
+              config: newConfig,
             });
           }}
         >
